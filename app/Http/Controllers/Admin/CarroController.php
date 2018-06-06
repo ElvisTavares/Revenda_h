@@ -3,20 +3,32 @@
 namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 
-class \CarroController extends Controller
+use App\Carro;
+use App\Marca;
+
+class CarroController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
+
+    public function __construct(){
+        $this->middleware('auth');
+    }
+
     public function index()
     {
-        $dados = carro::all();
 
-        return view ('admin.carros_list');
+        $dados = Carro::paginate(3);
+
+        $soma = Carro::sum('preco');
+
+        return view('admin.carros_list', ['carros' => $dados, 'soma' => $soma]);
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 return [
+
     /*
     |--------------------------------------------------------------------------
     | Password Reminder Language Lines
@@ -12,9 +13,10 @@ return [
     |
     */
 
-    'password' => 'A senha deve conter pelo menos seis caracteres e ser igual à confirmação.',
+    'password' => 'A senha deve possuir no mínimo 6 caracteres e ser igual à confirmação.',
     'reset' => 'Sua senha foi redefinida!',
-    'sent' => 'Enviamos um link para redefinir a sua senha por e-mail.',
-    'token' => 'Esse código de redefinição de senha é inválido.',
-    'user' => 'Não conseguimos encontrar nenhum usuário com o endereço de e-mail informado.',
+    'sent' => 'O link para redefinição de senha foi enviado para o seu e-mail!',
+    'token' => 'O token para recuperação de senha é inválido.',
+    'user' => 'Não encontramos nenhum usuário com esse endereço de e-mail.',
+
 ];
