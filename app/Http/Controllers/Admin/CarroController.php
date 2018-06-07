@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 
 use App\Carro;
@@ -24,7 +26,7 @@ class CarroController extends Controller
     public function index()
     {
 
-        $dados = Carro::paginate(3);
+        $dados = Carro::paginate(10);
 
         $soma = Carro::sum('preco');
 
@@ -39,6 +41,12 @@ class CarroController extends Controller
     public function create()
     {
         //
+        $marcas = Marca::orderBy('nome')->get();
+        $combust = Carro::combust();
+
+        return view ('admin.carros_form',
+            ['marcas'=>$marcas, 'comb'=>$combust, 'acao'=>1]
+            );
     }
 
     /**
@@ -50,6 +58,31 @@ class CarroController extends Controller
     public function store(Request $request)
     {
         //
+
+        $this->validate($request, [
+            'modelo' => 'min:2|max:40',
+            'ano' => 'numeric|min:1970|max:2020'
+        ]);
+
+        // obtém todos os campos do formulário
+        $dados = $request->all();
+
+        // se campo foto foi preenchido e enviado (válido)
+        if ($request->hasFile('foto') &&
+            $request->file('foto')->isValid()) {
+            // salva o arquivo e retorna um id único
+            $path = $request->file('foto')->store('fotos');
+
+            $dados['foto'] = $path;
+        }
+
+        $inc = Carro::create($dados);
+
+        if ($inc) {
+            return redirect()->route('carros.index')
+                ->with('status', $request->modelo . ' inserido com sucesso!');
+        }
+
     }
 
     /**
@@ -71,7 +104,16 @@ class CarroController extends Controller
      */
     public function edit($id)
     {
-        //
+        // posiciona no registro a ser alterado e obtém seus dados
+        $reg = Carro::find($id);
+
+        $marcas = Marca::orderBy('nome')->get();
+
+        $combustiveis = Carro::combust();
+
+        return view('admin.carros_form', ['reg' => $reg, 'marcas' => $marcas,
+            'acao' => 2,
+            'comb' => $combustiveis]);
     }
 
     /**
@@ -83,7 +125,33 @@ class CarroController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        // obtém os dados do form
+        $dados = $request->all();
+
+        // posiciona no registo a ser alterado
+        $reg = Carro::find($id);
+
+        // se campo foto foi preenchido e enviado (válido)
+        if ($request->hasFile('foto') &&
+            $request->file('foto')->isValid()) {
+            // salva o arquivo e retorna um id único
+            $path = $request->file('foto')->store('fotos');
+
+            $dados['foto'] = $path;
+
+            // se existe, exclui a foto antiga
+            if (Storage::exists($reg->foto)) {
+                Storage::delete($reg->foto);
+            }
+        }
+
+        // realiza a alteração
+        $alt = $reg->update($dados);
+
+        if ($alt) {
+            return redirect()->route('carros.index')
+                ->with('status', $request->modelo . ' Alterado!');
+        }
     }
 
     /**
@@ -94,6 +162,31 @@ class CarroController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $car = Carro::find($id);
+        if ($car->delete()) {
+            if (Storage::exists($car->foto)) {
+                Storage::delete($car->foto);
+            }
+            return redirect()->route('carros.index')
+                ->with('status', $car->modelo . ' Excluído!');
+        }
+    }
+
+
+    public function destaque($id) {
+        $car = Carro::find($id);
+
+        if ($car->destaque == "x") {
+            $destaque = "";
+        } else {
+            $destaque = "x";
+        }
+
+        $dest = DB::update('update carros set destaque = ? where id = ?', [$destaque, $id]);
+
+        if ($dest) {
+            return redirect()->route('carros.index')->with('status',
+                ($destaque == "x" ? $car->modelo . ' destacado' : $car->modelo . ' retirado do destaque'));
+        }
     }
 }

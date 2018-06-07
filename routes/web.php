@@ -22,6 +22,9 @@ Route::group(['prefix'=>'admin', 'namespace'=>'Admin', 'middleware' => 'auth'], 
     });
     Route::resource('carros', 'CarroController');
 
+    Route::get('carrosdestaque/{id}', 'CarroController@destaque')
+            ->name('carros.destaque');
+
 
 });
 

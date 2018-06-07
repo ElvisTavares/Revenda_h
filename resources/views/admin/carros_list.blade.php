@@ -33,7 +33,7 @@
         @forelse($carros as $c)
             <tr>
                 <td> {{$c->modelo}} </td>
-                <td> {{$c->marca_nome}} </td>
+                <td> {{$c->marca->nome}} </td>
                 <td> {{$c->cor}} </td>
                 <td> {{$c->ano}} </td>
                 <td> {{number_format($c->preco, 2, ',', '.')}} </td>
@@ -42,15 +42,54 @@
                 <td> {{$c->destaque}} </td>
 
 
+                <td>
+                    @if (Storage::exists($c->foto))
+                        <img src="{{url('storage/'.$c->foto)}}"
+                             style="width: 80px; height: 50px"
+                             alt="Foto de Carro">
+                    @else
+                        <img src="{{url('storage/fotos/semfoto.jpg')}}"
+                             style="width: 80px; height: 50px"
+                             alt="Sem foto">
+                    @endif
+                </td>
+                <td>
+                    <a href="{{route('carros.edit',$c->id)}}"
+                       class="btn btn-warning btn-sm" title="Alterar"
+                       role="button"><i class="fa fa-edit"></i></a> &nbsp;&nbsp;
+                    <form style="display: inline-block"
+                          method="post"
+                          action="{{route('carros.destroy', $c->id)}}"
+                          onsubmit="return confirm('Confirma Exclusão?')">
+                        {{method_field('delete')}}
+                        {{csrf_field()}}
+                        <button type="submit" title="Excluir"
+                                class="btn btn-danger btn-sm"><i class="far fa-trash-alt"></i></button>
+                    </form>&nbsp;&nbsp;
+                    <a href="{{ route('carros.destaque', $c->id) }}"
+                       class="btn btn-success btn-sm" title="Destacar"
+                       role="button"><i class="fa fa-star"></i></a>
+                </td>
             </tr>
+            @if ($loop->last)
+                <tr>
+                    <td colspan=8> Soma dos preços dos veículos cadastrados R$:
+                        {{number_format($soma, 2, ',', '.')}} </td>
+                </tr>
+                <tr>
+                    <td colspan=8> Preço Médio dos veículos cadastrados R$:
+                        {{number_format($c->avg('preco'), 2, ',', '.')}} </td>
+                </tr>
+            @endif
 
         @empty
-
+            <tr><td colspan=8> Não há carros cadastrados ou filtro da pesquisa não
+                    encontrou registros </td></tr>
         @endforelse
     </table>
 
 
-
+    {{ $carros->links() }}
 @endsection
 
 @section('js')
